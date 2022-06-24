@@ -61,7 +61,8 @@ class DecisionTree:
         curr_node = node if node else self.root
         if curr_node.depth >= self.max_depth:
             curr_node.is_terminal = True
-            # print('Reached maximum depth!')
+            # ToDo: set node return value (classifier)
+            # ToDo: set average value of data for node (regression)
             return
         
         if len(curr_node.node_idxs) < self.min_feats:
@@ -76,6 +77,8 @@ class DecisionTree:
                                            )
         
         # print(split_col, split_vals)
+        print(split_col)
+        print(split_vals)
         for val0,val1 in zip(split_vals[:],np.append(split_vals[1:],split_vals[-1]+1e-6)):
             data_idxs = data[data[split_col].between(val0,val1,inclusive='left')].index.to_numpy()
             child = Node(split_idx=split_col,
@@ -155,7 +158,7 @@ def bucket_probs(tar_values: list,
     data = df.dropna(subset=[col_idx])
     counts = []
     if num_buckets == 2:
-        split_vals = [data[col_idx].min(),data[col_idx].mean()] # ,data[col_idx].max()
+        split_vals = [data[col_idx].min(),data[col_idx].mean()] #,data[col_idx].max()]
     else:
         split_vals = [] # split into n buckets
     for val0,val1 in zip(split_vals[:-1],split_vals[1:]):
@@ -171,7 +174,7 @@ def bucket_probs(tar_values: list,
 def information_gain(df: pd.DataFrame,
                      split_idx: int,
                      tar_idx: int,
-                     max_split_nodes: int = 5,
+                     max_split_nodes: int = 2,
                      ):
     data_num = df[tar_idx].count()
     # parent entropy
@@ -179,7 +182,7 @@ def information_gain(df: pd.DataFrame,
     if len(tar_vals) <= max_split_nodes:
         counts = []
         for val in tar_vals:
-            tar_probs = counts.append(len(df[df[tar_idx]==val]))
+            counts.append(len(df[df[tar_idx]==val]))
         tar_probs = counts / data_num
     else: # for regression, we can take the average or bucket  
         pass
@@ -242,19 +245,19 @@ def sanity_check(X: pd.DataFrame,
     from sklearn.metrics import log_loss
     classifier = tree.DecisionTreeClassifier(criterion=criterion,splitter=splitter,max_depth=max_depth,min_samples_leaf=min_samples)
 
-    # issue with this line ???
     classifier = classifier.fit(X,Y)
-    ###
-    
-    x1,x2 = 10,20
-    predictions = classifier.predict(X.iloc[x1:x2])
-    truths = labels().iloc[x1:x2].values
 
+    x1 = 0
+    x2 = x1+10
+    predictions = classifier.predict(X.iloc[x1:x2])
+    truths = Y.iloc[x1:x2].values
+    
     loss = log_loss(y_true=[truth[0] for truth in truths],
                     y_pred=predictions,
                     )
-    
-    print()
+    text_repr = tree.export_text(classifier)
+    print(text_repr)
+    print(f"===\nLoss: {loss}")
 
 ###
 
@@ -266,12 +269,13 @@ if __name__=='__main__':
     unique_vals = get_unique_values(df)
 
     input_data = df[[key for key in unique_vals.keys() if key != goal_label]].copy()
-    labels = df[[goal_label]].copy
+    labels = df[[goal_label]].copy()
 
     class_to_idx, idx_to_class = get_class_idx_maps(unique_vals)
     for key in class_to_idx:
         df[key] = df[key].map(class_to_idx[key])
     
+    print("=========================\nBuilding decision tree...\n===")
     dt = DecisionTree(data=df,
                       goal_label=goal_label,
                       max_depth=4,
@@ -279,11 +283,14 @@ if __name__=='__main__':
                       )
 
     dt.enumerate()
+    print("=========================\n")
 
     ### Sanity check
-    input_data = input_data.dropna()
-    X = input_data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
-    Y = labels
+    print("===============\nSanity check...\n===")
+    data = df[['Survived','Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
+    data = data.dropna()
+    X = data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
+    Y = data[['Survived']]
     X = X.replace(class_to_idx)
     sanity_check(X=X,Y=Y,min_samples=10)
-
+    print("===============")
