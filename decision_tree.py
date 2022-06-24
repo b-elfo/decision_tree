@@ -50,7 +50,6 @@ class DecisionTree:
         self.split_node(node=self.root,
                         data=data,
                         )
-        
 
     def split_node(self,
                    node: Node,
@@ -90,6 +89,19 @@ class DecisionTree:
                             data.drop([split_col], axis=1), #child_data,
                             )
             # print('next child...')
+
+    def predict(self, 
+                X:pd.DataFrame,
+                ):
+        ###################
+        # Still need this #
+        ###################
+        predictions = []
+        for x in X:
+            prediction = None
+            predictions.append(prediction)
+        
+        return predictions
         
     def enumerate(self):
         nodes = [ self.root ]
@@ -246,15 +258,18 @@ def sanity_check(X: pd.DataFrame,
     classifier = classifier.fit(X,Y)
     ###
     
-    x1,x2 = 10,20
+    x1 = 0
+    x2 = x1+10
     predictions = classifier.predict(X.iloc[x1:x2])
-    truths = labels().iloc[x1:x2].values
+    truths = Y.iloc[x1:x2].values
 
     loss = log_loss(y_true=[truth[0] for truth in truths],
                     y_pred=predictions,
                     )
     
-    print()
+    text_repr = tree.export_text(classifier)
+    print(text_repr)
+    print(f"===\nLoss: {loss}")
 
 ###
 
@@ -272,6 +287,7 @@ if __name__=='__main__':
     for key in class_to_idx:
         df[key] = df[key].map(class_to_idx[key])
     
+    print("=========================\nBuilding decision tree...\n===")
     dt = DecisionTree(data=df,
                       goal_label=goal_label,
                       max_depth=4,
@@ -280,10 +296,16 @@ if __name__=='__main__':
 
     dt.enumerate()
 
+    dt.predict()
+
+    print("=========================\n")
+
     ### Sanity check
-    input_data = input_data.dropna()
-    X = input_data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
-    Y = labels
+    print("===============\nSanity check...\n===")
+    data = df[['Survived','Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
+    data = data.dropna()
+    X = data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
+    Y = data[['Survived']]
     X = X.replace(class_to_idx)
     sanity_check(X=X,Y=Y,min_samples=10)
 
