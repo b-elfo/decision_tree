@@ -97,6 +97,10 @@ class DecisionTree:
         # Still need this #
         ###################
         predictions = []
+
+        print(self.root.children[0].split_idx, self.root.children[0].split_vals)
+        print(self.root.children[1].split_idx, self.root.children[1].split_vals)
+
         for x in X:
             prediction = None
             predictions.append(prediction)
@@ -296,16 +300,15 @@ if __name__=='__main__':
 
     dt.enumerate()
 
-    dt.predict()
+    dt.predict(df.iloc[0])
 
     print("=========================\n")
 
-    ### Sanity check
-    print("===============\nSanity check...\n===")
-    data = df[['Survived','Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
-    data = data.dropna()
-    X = data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
-    Y = data[['Survived']]
-    X = X.replace(class_to_idx)
-    sanity_check(X=X,Y=Y,min_samples=10)
-
+    # ### Sanity check
+    # print("===============\nSanity check...\n===")
+    # data = df[['Survived','Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
+    # data = data.dropna()
+    # X = data[['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']]
+    # Y = data[['Survived']]
+    # X = X.replace(class_to_idx)
+    # sanity_check(X=X,Y=Y,min_samples=10)
