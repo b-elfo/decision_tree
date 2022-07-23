@@ -108,6 +108,7 @@ class DecisionTree:
 
 ###
 
+### Fix this ###
 def best_split(df: pd.DataFrame,
                goal_label: str,
                ):
@@ -116,6 +117,7 @@ def best_split(df: pd.DataFrame,
     best_split_vals = []
     for col in df.columns:
         if col not in [goal_label,'PassengerId','Cabin']:
+            print(f'Information Gain of {col}')
             ig, split_vals = information_gain(df=df, split_idx=col, tar_idx=goal_label)
             # ig, split_vals = gini_index()
             if ig > best_ig:
@@ -124,6 +126,8 @@ def best_split(df: pd.DataFrame,
                 best_split_vals = split_vals
             # print(f"{col+' information gain:':35} {ig:.5f}")
     return best_col, np.sort(best_split_vals)
+################
+
 
 ### Information Gain - Classification
 def entropy(probs):
@@ -171,14 +175,19 @@ def bucket_probs(tar_values: list,
         probs.append([v / sum(val_count) for v in val_count])
     return probs, counts, split_vals
 
+
+### Fix this ######
 def information_gain(df: pd.DataFrame,
                      split_idx: int,
                      tar_idx: int,
                      max_split_nodes: int = 2,
                      ):
+    print(f'########## {split_idx} ###')
     data_num = df[tar_idx].count()
+    print(f'data_num: {data_num}')
     # parent entropy
     tar_vals = df[tar_idx].unique()
+    print(f'tar_vals: {tar_vals}')
     if len(tar_vals) <= max_split_nodes:
         counts = []
         for val in tar_vals:
@@ -186,7 +195,9 @@ def information_gain(df: pd.DataFrame,
         tar_probs = counts / data_num
     else: # for regression, we can take the average or bucket  
         pass
+    print(f'tar_probs: {tar_probs}')
     parent_entropy = entropy(tar_probs) # find int to column map in pandas
+    print(f'parent_entropy: {parent_entropy}')
     # compute split entropies
     split_vals = df[split_idx].unique()
     if len(split_vals) <= max_split_nodes:
@@ -209,7 +220,13 @@ def information_gain(df: pd.DataFrame,
         split_entropy += entropy(prob) * (sum(split_counts[idx]) / data_num)
     # information gain
     # print(f'#####\nparent entropy: {parent_entropy}\nsplit entropy: {split_entropy}')
+    print(f'split_vals: {split_vals}')
+    print(f'split_probs: {split_probs}')
+    print(f'split_counts: {split_counts}')
+    print('##########\n')
     return parent_entropy - split_entropy, split_vals
+###################
+
 
 ###
 
